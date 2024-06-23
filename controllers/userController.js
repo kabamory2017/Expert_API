@@ -67,8 +67,8 @@ exports.findUsersById = async(req,res)=>{
 
     
 }
-const createToken = (id)=>{
-    return jwt.sign({id},process.env.SECRET,{expiresIn:"10d"})
+const createToken = (id,name,email)=>{
+    return jwt.sign({userId:id,userName:name,userEmail:email},process.env.SECRET,{expiresIn:"10d"})
 }
 exports.register = async(req,res)=>{
     const {name,email,password} = req.body
@@ -89,7 +89,7 @@ exports.register = async(req,res)=>{
     try {
         const hash =await bcrypt.hash(req.body.password,10)
         const newUser = await User.create({name,email,password:hash})
-        const token =createToken(newUser._id)
+        const token =createToken(newUser._id,newUser.name,newUser.email)
         return res.status(201).json({
             message:"user created succes",
             UserInfo: {
@@ -123,9 +123,9 @@ exports.login = async(req,res)=>{
                 message: "password incorrect"
             })
         }else{
-            const token =createToken(exist._id)
+            const token =createToken(exist._id,exist.name,exist.email)
             res.status(200).json({
-                message: "connection succcess $email",
+                message: `connection succcess ${email}`,
                 usertoken:token
             })
         }

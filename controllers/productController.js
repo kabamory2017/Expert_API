@@ -6,19 +6,20 @@ const User = require('../models/User')
 
 
 exports.createProduct = async(req,res)=>{
+    const {name,price,quantity,category}=req.body
     // res.json({data:req.user})
     if(!req.body.name){
         return res.status(422).json({error:'field name is required'})
     }
-    if(!req.body.user){
-        return res.status(422).json({error:'field users is required'})
-    }
+    // if(!req.body.user){
+    //     return res.status(422).json({error:'field users is required'})
+    // }
     if(!req.body.price){
         return res.status(422).json({error:'field price is required'})
     }
-    if(!await User.findOne({_id:req.body.user})){
-        return res.status(422).json({error:'user not exist'})
-    }
+    // if(!await User.findOne({_id:req.userId})){
+    //     return res.status(422).json({error:'user not exist'})
+    // }
     if(!req.body.category){
         return res.status(422).json({error:'field category is required'})
     }
@@ -30,8 +31,16 @@ exports.createProduct = async(req,res)=>{
     }
 
     try {
-        
-        const newProduct = await Product.create(req.body)
+        const current = await User.findOne({_id:req.user.userId})
+        const newProduct = await Product.create(
+           {
+            name,
+            price,
+            quantity,
+            category:req.body.category,
+            user: current.id
+           }
+        )
         return res.status(201).json({
             message:"success products create",
             data: newProduct})
@@ -120,6 +129,7 @@ exports.deleteProductsById= async(req,res)=>{
         if(!checkPost){
             return res.status(404).json({message: "products not found"})
         }
+        
         // const p = await User.findById(req.user.id)
         
         // if(!checkPost.user.equals(p._id)){
@@ -136,4 +146,42 @@ exports.deleteProductsById= async(req,res)=>{
     }
 
 }
+
+exports.deleteProductsByIdWithToken= async(req,res)=>{
+    // res.json(req.user)
+    try {
+        if(!mongoose.isValidObjectId(req.params.id)){
+            return res.status(422).json({message: "not a good id"})
+        }
+        const checkPost = await Product.exists({_id: req.params.id})
+        if(!checkPost){
+            return res.status(404).json({message: "products not found"})
+        }
+        const all_d = await Product.findOne({_id:req.params.id})
+        // const current = await User.findOne({_id:req.user.userId})
+        if(all_d.user.toString() !== req.user.userId){
+            return res.status(500).json({message: "it is not your post"})
+        }
+        
+        // const p = await User.findById(req.user.id)
+        // if(req.user._id!=checkPost.user._id){
+        //     return res.status(500).json({message: "it is not your post"})
+        // }
+        
+        // if(!checkPost.user.equals(p._id)){
+        //     return res.status(500).json({message: "it is not your post"})
+        // }
+        const all_datas = await Product.findByIdAndDelete(req.params.id)
+
+        // if(!all_datas){
+        //   return  res.status(404).json({error: "not found"})
+        // }
+        return res.status(201).json({element_received:"delete succes"})
+    } catch (error) {
+        return res.status(500).json({message: error.message})
+    }
+
+}
+
+
 

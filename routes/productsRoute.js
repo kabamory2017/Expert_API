@@ -16,7 +16,11 @@ const auth = async(req,res,next)=>{
     const token = authorization.split(" ")[1]
     try {
         const {id}= jwt.verify(token, process.env.SECRET)
-        req.user = await User.findById(id).select("_id")
+        // req.user = await User.findById(id).select("_id")
+        // next()
+        const decode= jwt.verify(token, process.env.SECRET)
+        req.user = decode
+        // req.user = {decode}
         next()
 
     } catch (error) {
@@ -27,7 +31,7 @@ const auth = async(req,res,next)=>{
 
 
 
-router.post("/",productController.createProduct)
+router.post("/",auth,productController.createProduct)
 
 router.get("/",productController.getAllProducts)
 
@@ -38,7 +42,7 @@ router.get("/user/:id",productController.getProductsByUser)
 router.get("/:id",productController.findProductsById)
 router.put("/:id",productController.updateProductsById)
 
-// router.delete("/:id",auth,productController.deleteProductsById)
+router.delete("/tok/:id",auth,productController.deleteProductsByIdWithToken)
 router.delete("/:id",productController.deleteProductsById)
 
 module.exports = router

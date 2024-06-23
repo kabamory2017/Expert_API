@@ -5,6 +5,7 @@ exports.createCategory = async(req,res)=>{
 
     try {
         if(!req.body.name){
+            throw new Error("check please")
             return res.status(422).json({error:'field name is required'})
         }
         if(await Category.findOne({name:req.body.name})){
@@ -12,7 +13,9 @@ exports.createCategory = async(req,res)=>{
         }
         
         const newCategory = await Category.create(req.body)
-        return res.status(201).json({data: newCategory})
+        return res.status(201).json({
+            message: `categorie ${req.body.name} success create`,
+            data: newCategory})
     } catch (error) {
         return res.status(500).json({message: error})
     }
@@ -92,7 +95,7 @@ exports.deleteCategorysById= async(req,res)=>{
             return res.status(404).json({message: "categories not found"})
         }else{
             const all_datas = await Category.findByIdAndDelete(req.params.id)
-            return res.status(201).json({element_received:"delete succes"})
+            return res.status(201).json({element_received:`${req.params.id} delete succes`})
         }
         
 
